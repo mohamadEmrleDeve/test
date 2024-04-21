@@ -20,12 +20,14 @@ class BlogController extends Controller
             $paginate = Blog::where('title','like', '%' . $request->search . '%')->paginate(10);
             $nextPageUrl = $paginate->nextPageUrl();
             $data = $paginate->map(function ($blog) {
+                $descriptionFilePath = public_path('uploads/Pages/' . $blog->contact . '.php');
+                $blogContent = file_exists($descriptionFilePath) ? file_get_contents($descriptionFilePath) : null;
                 return [
                     'id'            => $blog->id,
                     'title'         => $blog->title,
                     'description'   => $blog->description,
                     'image'         => '/uploads/Blogs/'.$blog->image,
-                    'contact'       => $blog->contact,
+                    'contact'       => $blogContent,
                 ];
             });
             return response()->json([
@@ -43,12 +45,14 @@ class BlogController extends Controller
             $paginate = Blog::paginate($request->paginate);
             $nextPageUrl = $paginate->nextPageUrl();
             $data = $paginate->map(function ($blog) {
+                $descriptionFilePath = public_path('uploads/Pages/' . $blog->contact . '.php');
+                $blogContent = file_exists($descriptionFilePath) ? file_get_contents($descriptionFilePath) : null;
                 return [
                     'id'            => $blog->id,
                     'title'         => $blog->title,
                     'description'   => $blog->description,
                     'image'         => '/uploads/Blogs/'.$blog->image,
-                    'contact'       => $blog->contact,
+                    'contact'       => $blogContent,
                 ];
             });
             return response()->json([
@@ -65,12 +69,14 @@ class BlogController extends Controller
             $paginate = Blog::paginate(10);
             $nextPageUrl = $paginate->nextPageUrl();
             $data = $paginate->map(function ($blog) {
+                $descriptionFilePath = public_path('uploads/Pages/' . $blog->contact . '.php');
+                $blogContent = file_exists($descriptionFilePath) ? file_get_contents($descriptionFilePath) : null;
                 return [
                     'id'            => $blog->id,
                     'title'         => $blog->title,
                     'description'   => $blog->description,
                     'image'         => '/uploads/Blogs/'.$blog->image,
-                    'contact'       => $blog->contact,
+                    'contact'       => $blogContent,
                 ];
             });
             return response()->json([
@@ -106,7 +112,7 @@ class BlogController extends Controller
             'title' => $validatedData['title'],
             'description' => $validatedData['description'],
             'image' => $imageName,
-            'contact' => $validatedData['contact']
+            'contact' => $fileName
         ]);
 
         // Commit the transaction if everything is successful
@@ -161,6 +167,9 @@ class BlogController extends Controller
         if(isset($request->image)) {
             $data['image'] = $this->saveImage($request->image,'uploads/Blogs');
         }
+        $modifiedContent = $request->contact;
+
+        file_put_contents(public_path('uploads/Pages/' . $record->title . '.php'), $modifiedContent);
         $record->update([
             'title'         => $request->title ?? $record->title,
             'description'   => $request->description ?? $record->description,
@@ -184,6 +193,10 @@ class BlogController extends Controller
         $blogTag = BlogTag::where('id',$record->id)->get();
         foreach($blogTag as $row) {
             $row->delete();
+        }
+        $filePath = public_path('uploads/Pages/' . $record->title . '.php');
+        if (file_exists($filePath)) {
+            unlink($filePath);
         }
         $record->delete();
         return response()->json([

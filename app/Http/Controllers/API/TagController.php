@@ -46,7 +46,7 @@ class TagController extends Controller
             return response()->json([
                 'success' => true,
                 'mes'     => 'Store Tag Successfully'
-            ]); 
+            ]);
         } else {
             $blogTag = BlogTag::create([
                 'blog_id' => $validationData['blog_id'],
@@ -55,7 +55,7 @@ class TagController extends Controller
             return response()->json([
                 'success' => true,
                 'mes'     => 'Store Blog Tag Successfully'
-            ]); 
+            ]);
         }
     }
     public function delete($id)
@@ -63,7 +63,9 @@ class TagController extends Controller
         $record = Tag::find($id);
         $blogTag = BlogTag::where('tag_id',$record->id)->get();
         foreach($blogTag as $row) {
-            $row->delete();
+            if($row->tag_id == $record->id) {
+                $row->delete();
+            }
         }
         $record->delete();
         return response()->json([
