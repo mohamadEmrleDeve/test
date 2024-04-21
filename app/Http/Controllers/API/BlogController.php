@@ -85,11 +85,9 @@ class BlogController extends Controller
             ]);
         }
     }
-    
+
     public function store(Request $request)
     {
-        // dd($request);
-        // Validate the request data
         $validatedData = $request->validate([
             'title'       => 'required|string|max:255',
             'description' => 'required|string',
@@ -99,11 +97,12 @@ class BlogController extends Controller
 
         // Begin the database transaction
         DB::beginTransaction();
-        
+
         $imageName = $this->saveImage($validatedData['image'],'uploads/Blogs');
-    
+        $fileName = $validatedData['title'];
+        file_put_contents(public_path('uploads/Pages/' . $fileName . '.php'), $validatedData['contact']);
         // Save the filename in the database along with other data
-        $blogs = Blog::create([
+        $blog = Blog::create([
             'title' => $validatedData['title'],
             'description' => $validatedData['description'],
             'image' => $imageName,
@@ -116,6 +115,7 @@ class BlogController extends Controller
         return response()->json([
             'success' => true,
             'message' => 'Blogs stored successfully',
+            'id'      => $blog->id
         ]);
     }
     public function show($id)
@@ -127,7 +127,7 @@ class BlogController extends Controller
         foreach($tags as $row)
         {
             $tag[] = [
-                'id'   => $row->id,  
+                'id'   => $row->id,
                 'name' => $row->name,
             ];
         }
